@@ -2,6 +2,7 @@ import { Component } from "react";
 
 import Button from "components/Button/Button";
 import Modal from "components/Modal/Modal";
+import { Loader } from "components/Loader/Loader";
 
 import Searchbar from "./Searchbar/Searchbar";
 import ImageGalleryItem from "./ImageGalleryItem/ImageGalleryItem";
@@ -17,6 +18,8 @@ class ImageGallery extends Component {
         loading: false,
         error: null,
         page: 1,
+        modalOpen: false,
+        fullImage: {},
     }
 
     async componentDidUpdate(prevProps, prevState) {
@@ -62,9 +65,26 @@ class ImageGallery extends Component {
         this.setState(({ page }) => ({ page: page + 1 }));
     }
 
+    showModal = ({largeImageURL, tags}) => {
+        this.setState({
+            modalOpen: true,
+            fullImage: {
+                largeImageURL,
+                tags,
+            }
+        })
+    }
+
+    closeModal = () => { 
+        this.setState({
+            modalOpen: false,
+            fullImage: {},
+        })
+    }
+    
     render() {
-        const { handleSearch, loadMore} = this;
-        const { hits, loading, error } = this.state;
+        const { handleSearch, loadMore, showModal, closeModal} = this;
+        const { hits, loading, error, modalOpen, fullImage } = this.state;
         
         const isImages = Boolean(hits.length);
         
@@ -72,14 +92,16 @@ class ImageGallery extends Component {
             <>
                 <Searchbar onSubmit={handleSearch} />
                 {error && <p>{error}</p>}
-                {loading && <p>...Loading</p>}
+                {loading && <Loader/>}
                 {isImages && (  <ul className={styles.imageGallery}>
-                                    <ImageGalleryItem items={hits} />
+                                    <ImageGalleryItem showModal={showModal} items={hits} />
                                 </ul>)}
                 {isImages && <div className={styles.loadMoreWrapper}>
                                 <Button onClick={loadMore} type="button">Load more</Button>
                 </div>}
-                <Modal/>
+                {modalOpen && <Modal close={closeModal}>
+                    <img src={fullImage.largeImageURL} alt={fullImage.tags} />
+                            </Modal>}
             </>
             
         )
