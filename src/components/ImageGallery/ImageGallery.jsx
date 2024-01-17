@@ -24,7 +24,11 @@ class ImageGallery extends Component {
 
     async componentDidUpdate(prevProps, prevState) {
         const { search, page } = this.state;
-        if (search && (search !== prevState.search || page !== prevState.page)) {
+        if (
+            // search && (search !== prevState.search || page !== prevState.page)
+            prevState.search !== search ||
+            prevState.page !== page
+        ) {            
             this.fetchImages();
         }
     }
@@ -37,8 +41,12 @@ class ImageGallery extends Component {
             })
                 const { data } = await searchImages(search, page);
 
-                this.setState(({hits}) => ({
-                    hits: data.hits?.length ? [...hits, ...data.hits] : hits,
+                if (!data.total) { 
+                    return alert('Ох! Нажаль за Вашим запитом нічого не знайдено');
+                }
+                this.setState(({ hits }) => ({
+                    hits: [...hits, ...data.hits],
+                    // hits: data.hits?.length ? [...hits, ...data.hits] : hits,
                 }))
             }
             catch(error) {
@@ -54,6 +62,9 @@ class ImageGallery extends Component {
     }
 
     handleSearch = ({ search }) => {
+        if (this.state.search.toLowerCase() === search.toLowerCase()) { 
+            return alert(`Ви ж і так переглядаєте ${search}`)
+        }
         this.setState({
             search,
             hits: [],
